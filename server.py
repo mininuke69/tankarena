@@ -81,12 +81,6 @@ def handle_client(sock: socket, addr: str):
         x: Optional[int]
         y: Optional[int]
 
-    """
-    class Player:
-        def __init__(self, nick = "guest", x = 0, y = 0) -> None:
-            self.nick = nick
-            self.x, self.y = x, y
-    """
 
 
     player = Tank(x=0, y=0, width=10, height=10, momentum=Vector2(0, 0))
@@ -95,6 +89,9 @@ def handle_client(sock: socket, addr: str):
 
         if data.command == "move": 
             ## todo: make reference to SceneObject instead of saving in Player class
+            ## todo: fix momentum normalization for shoot command
+            ## todo: add shoot countdown
+            ##
             move_vector = Vector2(data.x, data.y)
             move_vector.cut(max_magnitude=15)
 
@@ -102,7 +99,22 @@ def handle_client(sock: socket, addr: str):
             player.y += data.y
 
         elif data.command == "shoot":
-            scene_objects.append(Bullet())
+            bullet = Bullet(
+                x=player.x,
+                y=player.y,
+                width=1,
+                height=1,
+                momentum=Vector2(data.x, y=data.y),
+                shooter=player.nick
+                )
+            
+            scene_objects.append(bullet)
+        
+        elif data.command == "nick":
+            if 0 < len(data.nick) < 65:
+                player.nick = data.nick
+            else:
+                player.nick = "guest"
 
 
 def handle_update_cycle(update_speed = 25):
